@@ -12,6 +12,15 @@ const {
   registeringUser,
   loginUser,
 } = require("./userMiddlewares");
+const tokenValidator = require("./tokenValidator");
+const {
+  AddTxn,
+  UpdateTxn,
+  DeleteTxn,
+  CreditDebitTotals,
+  GetTxns,
+  SevenDaysTxns,
+} = require("./txnMiddlewares");
 
 const app = express();
 
@@ -40,3 +49,11 @@ app.get("/", sample);
 app
   .post("/register/", inputValidation, valuesValidation, registeringUser)
   .post("/login/", loginUser);
+
+app
+  .get("/all-transactions/", tokenValidator, GetTxns)
+  .get("/credit-debit-transactions/", tokenValidator, CreditDebitTotals)
+  .post("/add-txn", tokenValidator, AddTxn)
+  .put("/update-txn/:id/", tokenValidator, UpdateTxn)
+  .delete("/delete-txn/", tokenValidator, DeleteTxn)
+  .get("/seven-days-txns/", tokenValidator, SevenDaysTxns);
