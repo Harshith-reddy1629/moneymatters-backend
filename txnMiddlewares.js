@@ -106,7 +106,7 @@ const SevenDaysTxns = async (requset, response) => {
 
   try {
     const oneWeek = new Date();
-    oneWeek.setDate(new Date().getDate() - 7);
+    oneWeek.setDate(new Date().getDate() - 6);
 
     const SevendaysData = await txnData.find({
       userId: id,
