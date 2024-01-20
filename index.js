@@ -11,6 +11,7 @@ const {
   valuesValidation,
   registeringUser,
   loginUser,
+  getUserDetails,
 } = require("./userMiddlewares");
 const tokenValidator = require("./tokenValidator");
 const {
@@ -55,5 +56,6 @@ app
   .get("/credit-debit-transactions/", tokenValidator, CreditDebitTotals)
   .post("/add-txn", tokenValidator, AddTxn)
   .put("/update-txn/:id/", tokenValidator, UpdateTxn)
-  .delete("/delete-txn/", tokenValidator, DeleteTxn)
-  .get("/seven-days-txns/", tokenValidator, SevenDaysTxns);
+  .delete("/delete-txn/:id", tokenValidator, DeleteTxn)
+  .get("/seven-days-txns/", tokenValidator, SevenDaysTxns)
+  .get("/get-user-details", tokenValidator, getUserDetails);

@@ -114,3 +114,20 @@ const loginUser = async (request, response) => {
 };
 
 exports.loginUser = loginUser;
+
+const getUserDetails = async (request, response) => {
+  // console.log(request.user);
+  // response.status(200).send(request.user);
+
+  const { id } = request.user;
+
+  try {
+    const getUser = await usersData.findOne({ _id: id });
+
+    response.status(200).send(getUser);
+  } catch (error) {
+    response.status(400).send(error);
+  }
+};
+
+exports.getUserDetails = getUserDetails;
