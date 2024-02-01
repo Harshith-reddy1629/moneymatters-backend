@@ -11,6 +11,11 @@ const usersSchema = mongoose.Schema(
       unique: true,
       required: [true, "Please add the email address"],
     },
+    isVerified: {
+      default: false,
+      type: Boolean,
+      required: [true, "Verify your email"],
+    },
     username: {
       type: String,
       unique: true,
@@ -25,6 +30,7 @@ const usersSchema = mongoose.Schema(
       default: Date.now,
     },
   },
+
   {
     timestamps: true,
   }

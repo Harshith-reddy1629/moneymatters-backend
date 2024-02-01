@@ -5,6 +5,7 @@ const cors = require("cors");
 const dotenv = require("dotenv").config();
 
 const mongooseConnection = require("./mongoConnection");
+
 const {
   sample,
   inputValidation,
@@ -12,8 +13,13 @@ const {
   registeringUser,
   loginUser,
   getUserDetails,
+  generateEmail,
+  emailVerification,
+  resendMail,
 } = require("./userMiddlewares");
+
 const tokenValidator = require("./tokenValidator");
+
 const {
   AddTxn,
   UpdateTxn,
@@ -48,8 +54,16 @@ initializeServer();
 
 app.get("/", sample);
 app
-  .post("/register/", inputValidation, valuesValidation, registeringUser)
-  .post("/login/", loginUser);
+  .post(
+    "/register/",
+    inputValidation,
+    valuesValidation,
+    registeringUser,
+    generateEmail
+  )
+  .post("/login/", loginUser)
+  .get("/verify-email/:id", emailVerification)
+  .get("/resend-mail/", tokenValidator, resendMail);
 
 app
   .get("/all-transactions/", tokenValidator, GetTxns)
@@ -59,3 +73,5 @@ app
   .delete("/delete-txn/:id", tokenValidator, DeleteTxn)
   .get("/seven-days-txns/", tokenValidator, SevenDaysTxns)
   .get("/get-user-details", tokenValidator, getUserDetails);
+
+// generateEmail();

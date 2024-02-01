@@ -1,6 +1,9 @@
 const usersData = require("./Models/usersSchema");
 
+const nodemailer = require("nodemailer");
+
 const bcrypt = require("bcrypt");
+const { response, request } = require("express");
 
 const jwt = require("jsonwebtoken");
 
@@ -58,7 +61,7 @@ const valuesValidation = async (request, response, next) => {
 
 exports.valuesValidation = valuesValidation;
 
-const registeringUser = async (request, response) => {
+const registeringUser = async (request, response, next) => {
   const { name, username, password, email } = request.body;
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -73,7 +76,8 @@ const registeringUser = async (request, response) => {
       email,
     });
 
-    response.status(201).send(newUser);
+    // response.status(201).send(newUser);
+    next();
   } else {
     response.status(400).send({
       errMsg: "Username already exists",
@@ -102,7 +106,7 @@ const loginUser = async (request, response) => {
         };
         const jwtToken = jwt.sign(payload, process.env.MY_SECRET_TOKEN);
 
-        response.send({ jwtToken });
+        response.status(200).send({ jwtToken });
       } else {
         response.status(400);
         response.send({ errMsg: "Invalid Username or Password" });
@@ -131,3 +135,109 @@ const getUserDetails = async (request, response) => {
 };
 
 exports.getUserDetails = getUserDetails;
+
+const generateEmail = async (request, response) => {
+  try {
+    const { email, name, username } = request.body;
+
+    const getId = await usersData.findOne({ email });
+
+    const transporter = nodemailer.createTransport({
+      host: "SMTPConnection.gmail.com",
+      service: "gmail",
+      auth: {
+        user: process.env.MY_EMAIL,
+        pass: process.env.MY_PASS,
+      },
+    });
+
+    if (!getId) {
+      response.status(404).send({ errMsg: "invalid" });
+    } else {
+      const { _id } = getId;
+
+      await transporter.sendMail({
+        from: process.env.MY_EMAIL,
+        to: email,
+        subject: "Verify email",
+        text: `Hello, thanks for registering 
+        
+        verify your mail https://money-matters-frontend.vercel.app/verify/mail/${_id}`,
+      });
+    }
+
+    const payload = {
+      username,
+      id: _id,
+      name,
+      email,
+    };
+    const jwtToken = jwt.sign(payload, process.env.MY_SECRET_TOKEN);
+
+    response.status(200).send({ msg: "email sent,", jwtToken });
+  } catch (error) {
+    response.status(500).send(error);
+  }
+};
+exports.generateEmail = generateEmail;
+
+const emailVerification = async (request, response) => {
+  const { id } = request.params;
+
+  try {
+    const verifyUser = await usersData.updateOne(
+      { _id: id },
+      { isVerified: true }
+    );
+
+    response.status(200).send(verifyUser);
+  } catch (error) {
+    console.log("firstre");
+    response.status(400).send("failed");
+  }
+};
+
+exports.emailVerification = emailVerification;
+
+const resendMail = async (request, response) => {
+  try {
+    const { email, name, username } = request.user;
+    console.log("1", email);
+    const getId = await usersData.findOne({ email });
+
+    console.log("3", email);
+    const transporter = nodemailer.createTransport({
+      host: "SMTPConnection.gmail.com",
+      service: "gmail",
+      auth: {
+        user: process.env.MY_EMAIL,
+        pass: process.env.MY_PASS,
+      },
+    });
+
+    if (!getId) {
+      console.log("2");
+      response.status(404).send({ errMsg: "invalid" });
+    } else {
+      const { _id, isVerified } = getId;
+
+      if (isVerified) {
+        response.status(200).send({ msg: "this email was verified" });
+      } else {
+        await transporter.sendMail({
+          from: process.env.MY_EMAIL,
+          to: email,
+          subject: "Verify email",
+          text: `Hello, thanks for registering 
+          
+          verify your mail https://money-matters-frontend.vercel.app/verify/mail/${_id}`,
+        });
+        response.status(200).send({ msg: "email sent," });
+      }
+    }
+  } catch (error) {
+    response.status(500).send(error);
+  }
+};
+
+exports.resendMail = resendMail;
