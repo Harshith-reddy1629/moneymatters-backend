@@ -1,5 +1,7 @@
 const usersData = require("./Models/usersSchema");
 
+const EmailValidator = require("email-validator");
+
 const nodemailer = require("nodemailer");
 
 const bcrypt = require("bcrypt");
@@ -154,27 +156,17 @@ const generateEmail = async (request, response) => {
     if (!getId) {
       response.status(404).send({ errMsg: "invalid" });
     } else {
-      const { _id } = getId;
+      const { _id, name } = getId;
 
       await transporter.sendMail({
         from: process.env.MY_EMAIL,
         to: email,
         subject: "Verify email",
-        text: `Hello, thanks for registering 
-        
-        verify your mail https://money-matters-frontend.vercel.app/verify/mail/${_id}`,
+        text: `Hi ${name},\nWe just need to verify your email address before you can access MoneyMatters.\nVerify your email address https://money-matters-frontend.vercel.app/verify/mail/${_id}`,
       });
     }
 
-    const payload = {
-      username,
-      id: _id,
-      name,
-      email,
-    };
-    const jwtToken = jwt.sign(payload, process.env.MY_SECRET_TOKEN);
-
-    response.status(200).send({ msg: "email sent,", jwtToken });
+    response.status(201).send({ msg: "email sent," });
   } catch (error) {
     response.status(500).send(error);
   }
@@ -185,14 +177,25 @@ const emailVerification = async (request, response) => {
   const { id } = request.params;
 
   try {
-    const verifyUser = await usersData.updateOne(
-      { _id: id },
-      { isVerified: true }
-    );
+    const UserwithId = await usersData.findOne({ _id: id });
 
-    response.status(200).send(verifyUser);
+    if (!UserwithId) {
+      response.status(404).send({ errMsg: "Invalid Url" });
+    } else {
+      const { isVerified } = UserwithId;
+
+      if (isVerified) {
+        response.status(400).send({ errMsg: "Email already verified" });
+      } else {
+        const verifyUser = await usersData.updateOne(
+          { _id: id },
+          { isVerified: true }
+        );
+
+        response.status(200).send(verifyUser);
+      }
+    }
   } catch (error) {
-    console.log("firstre");
     response.status(400).send("failed");
   }
 };
@@ -201,11 +204,10 @@ exports.emailVerification = emailVerification;
 
 const resendMail = async (request, response) => {
   try {
-    const { email, name, username } = request.user;
-    console.log("1", email);
+    const { email } = request.params;
+
     const getId = await usersData.findOne({ email });
 
-    console.log("3", email);
     const transporter = nodemailer.createTransport({
       host: "SMTPConnection.gmail.com",
       service: "gmail",
@@ -216,10 +218,10 @@ const resendMail = async (request, response) => {
     });
 
     if (!getId) {
-      console.log("2");
-      response.status(404).send({ errMsg: "invalid" });
+      response.status(404).send({ errMsg: "invalid email" });
     } else {
-      const { _id, isVerified } = getId;
+      const { _id, isVerified, name } = getId;
+      console.log(getId);
 
       if (isVerified) {
         response.status(200).send({ msg: "this email was verified" });
@@ -228,9 +230,7 @@ const resendMail = async (request, response) => {
           from: process.env.MY_EMAIL,
           to: email,
           subject: "Verify email",
-          text: `Hello, thanks for registering 
-          
-          verify your mail https://money-matters-frontend.vercel.app/verify/mail/${_id}`,
+          text: `Hi ${name},\nWe just need to verify your email address before you can access MoneyMatters.\nVerify your email address https://money-matters-frontend.vercel.app/verify/mail/${_id}`,
         });
         response.status(200).send({ msg: "email sent," });
       }

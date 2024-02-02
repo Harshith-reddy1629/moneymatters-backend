@@ -16,6 +16,7 @@ const {
   generateEmail,
   emailVerification,
   resendMail,
+  trailEmail,
 } = require("./userMiddlewares");
 
 const tokenValidator = require("./tokenValidator");
@@ -63,7 +64,7 @@ app
   )
   .post("/login/", loginUser)
   .get("/verify-email/:id", emailVerification)
-  .get("/resend-mail/", tokenValidator, resendMail);
+  .get("/resend-mail/:email", resendMail);
 
 app
   .get("/all-transactions/", tokenValidator, GetTxns)
