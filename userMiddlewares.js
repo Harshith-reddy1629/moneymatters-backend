@@ -97,7 +97,7 @@ const loginUser = async (request, response) => {
     if (!dbUser) {
       response.status(400).send({ errMsg: "Invalid Username or password" });
     } else {
-      const { id, name, email } = dbUser;
+      const { id, name, email, isVerified } = dbUser;
       const isPasswordMatched = await bcrypt.compare(password, dbUser.password);
       if (isPasswordMatched) {
         const payload = {
@@ -221,7 +221,6 @@ const resendMail = async (request, response) => {
       response.status(404).send({ errMsg: "invalid email" });
     } else {
       const { _id, isVerified, name } = getId;
-      console.log(getId);
 
       if (isVerified) {
         response.status(200).send({ msg: "this email was verified" });
