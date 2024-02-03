@@ -100,15 +100,19 @@ const loginUser = async (request, response) => {
       const { id, name, email, isVerified } = dbUser;
       const isPasswordMatched = await bcrypt.compare(password, dbUser.password);
       if (isPasswordMatched) {
-        const payload = {
-          username,
-          id,
-          name,
-          email,
-        };
-        const jwtToken = jwt.sign(payload, process.env.MY_SECRET_TOKEN);
+        if (isVerified) {
+          const payload = {
+            username,
+            id,
+            name,
+            email,
+          };
+          const jwtToken = jwt.sign(payload, process.env.MY_SECRET_TOKEN);
 
-        response.status(200).send({ jwtToken });
+          response.status(200).send({ jwtToken });
+        } else {
+          response.status(401).send({ errMsg: "your account is not verified" });
+        }
       } else {
         response.status(400);
         response.send({ errMsg: "Invalid Username or Password" });
@@ -122,9 +126,6 @@ const loginUser = async (request, response) => {
 exports.loginUser = loginUser;
 
 const getUserDetails = async (request, response) => {
-  // console.log(request.user);
-  // response.status(200).send(request.user);
-
   const { id } = request.user;
 
   try {

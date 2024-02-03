@@ -114,8 +114,6 @@ const SevenDaysTxns = async (requset, response) => {
     });
 
     response.status(200).send(SevendaysData);
-
-    console.log(oneWeek);
   } catch (error) {}
 };
 

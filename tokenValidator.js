@@ -18,7 +18,6 @@ const tokenValidator = (request, response, next) => {
           response.status(401);
           response.send({ errMsg: "Invalid JWT Token" });
         } else {
-          // console.log(payload);
           request.user = payload;
           next();
         }
