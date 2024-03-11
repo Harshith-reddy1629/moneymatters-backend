@@ -68,7 +68,7 @@ app
   .get("/verify-email/:id", emailVerification)
   .get("/resend-mail/:email", resendMail)
   .post("/allow-change-password", allowChangePassword)
-  .post("/change-password", forgotChangePassword);
+  .post("/change-password/:id", forgotChangePassword);
 
 app
   .get("/all-transactions/", tokenValidator, GetTxns)
