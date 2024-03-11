@@ -298,15 +298,13 @@ exports.forgotChangePassword = async (req, res) => {
 
       res.status(200).send({ message: "Password changed" });
     } else {
-      res
-        .status(400)
-        .send({
-          errMsg:
-            "Password has been already updated or not allowed to change password",
-        });
+      res.status(400).send({
+        errMsg:
+          "Password has been already updated or not allowed to change password",
+      });
     }
   } catch (error) {
-    res.status(500).send({ errMsg: "Internal Error" });
+    res.status(500).send({ errMsg: "Internal Error." });
   }
 };
 
