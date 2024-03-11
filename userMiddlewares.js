@@ -64,7 +64,7 @@ const valuesValidation = async (request, response, next) => {
 exports.valuesValidation = valuesValidation;
 
 const registeringUser = async (request, response, next) => {
-  const { name, username, password, email } = request.body;
+  const { name, username, password, email, date } = request.body;
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -76,6 +76,7 @@ const registeringUser = async (request, response, next) => {
       username,
       password: hashedPassword,
       email,
+      dateOfBirth: date,
     });
 
     // response.status(201).send(newUser);
@@ -241,3 +242,72 @@ const resendMail = async (request, response) => {
 };
 
 exports.resendMail = resendMail;
+
+exports.allowChangePassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const isValidUser = await usersData.findOne({ email });
+    const transporter = nodemailer.createTransport({
+      host: "SMTPConnection.gmail.com",
+      service: "gmail",
+      auth: {
+        user: process.env.MY_EMAIL,
+        pass: process.env.MY_PASS,
+      },
+    });
+
+    if (isValidUser) {
+      const getID = await usersData.updateOne(
+        { email },
+        { passChangeAllowed: true }
+      );
+
+      const { _id, isVerified, name } = getID;
+
+      await transporter.sendMail({
+        from: process.env.MY_EMAIL,
+        to: email,
+        subject: "Change Password",
+        text: `Hi ${name},\nWe just need to verify your email address before you can access MoneyMatters.\nVerify your email address https://money-matters-frontend.vercel.app/change-password/${_id}`,
+      });
+      res.status(200).send({ msg: "email sent," });
+    } else {
+      res.status(404).send({ errMsg: "No user found with this details" });
+    }
+  } catch (error) {
+    res.status(500).send({ errMsg: "Internal Error", error: error.message });
+  }
+};
+
+exports.forgotChangePassword = async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  try {
+    const getUser = await usersData.findOne({ _id: id });
+
+    const { passChangeAllowed } = getUser;
+
+    if (passChangeAllowed) {
+      const updatepassword = await usersData.findOneAndUpdate(
+        { _id: id },
+        { password: hashedPassword, passChangeAllowed: false }
+      );
+
+      res.status(200).send({ message: "Password changed" });
+    } else {
+      res
+        .status(400)
+        .send({
+          errMsg:
+            "Password has been already updated or not allowed to change password",
+        });
+    }
+  } catch (error) {
+    res.status(500).send({ errMsg: "Internal Error" });
+  }
+};
+
+exports.updateAdrress = async (req, res) => {};
