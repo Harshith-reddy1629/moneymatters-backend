@@ -280,6 +280,23 @@ exports.allowChangePassword = async (req, res) => {
   }
 };
 
+exports.checkpassword = async (req, res, next) => {
+  const { newPassword } = req.body;
+
+  if (newPassword) {
+    const isPasswordGT16 = newPassword.length > 16;
+    const isPasswordLT8 = newPassword.length < 8;
+
+    if (isPasswordGT16 || isPasswordLT8) {
+      res.status(400).send({ errMsg: "Password length should be 8-12 " });
+    } else {
+      next();
+    }
+  } else {
+    res.status(400).send({ errMsg: "Invalid Input" });
+  }
+};
+
 exports.forgotChangePassword = async (req, res) => {
   const { id } = req.params;
   const { newPassword } = req.body;
