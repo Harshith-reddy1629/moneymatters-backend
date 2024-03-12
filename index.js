@@ -19,6 +19,7 @@ const {
   trailEmail,
   allowChangePassword,
   forgotChangePassword,
+  checkpassword,
 } = require("./userMiddlewares");
 
 const tokenValidator = require("./tokenValidator");
@@ -68,7 +69,7 @@ app
   .get("/verify-email/:id", emailVerification)
   .get("/resend-mail/:email", resendMail)
   .post("/allow-change-password", allowChangePassword)
-  .post("/change-password/:id", forgotChangePassword);
+  .post("/change-password/:id", checkpassword, forgotChangePassword);
 
 app
   .get("/all-transactions/", tokenValidator, GetTxns)
