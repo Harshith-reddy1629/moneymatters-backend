@@ -260,7 +260,8 @@ exports.allowChangePassword = async (req, res) => {
     if (isValidUser) {
       const getID = await usersData.updateOne(
         { email },
-        { passChangeAllowed: true }
+        { passChangeAllowed: true },
+        { new: true }
       );
 
       const { _id, isVerified, name } = getID;
